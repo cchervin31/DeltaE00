@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L*a*b* → ΔE00 Batch Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:      #00f0ff;
+  --secondary:    #ff00ea;
+  --accent:       #00ff9f;
+  --bg-dark:      #0a0e27;
+  --bg-card:      #151b3d;
+  --bg-input:     #1a2145;
+  --text-light:   #e0e7ff;
+  --text-muted:   #8b92b8;
+  --success:      #00ff9f;
+  --error:        #ff4757;
+  --warning:      #ffa502;
+  --border:       #2d3561;
+  --border-bright:#3d4a80;
+}
+ 
+* { margin:0; padding:0; box-sizing:border-box; }
+ 
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-dark);
+  color: var(--text-light);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at 15% 40%, rgba(0,240,255,0.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 70%, rgba(255,0,234,0.08) 0%, transparent 45%),
+    radial-gradient(circle at 50% 10%, rgba(0,255,159,0.05) 0%, transparent 40%);
+  padding: 20px;
+}
+ 
+.container { max-width: 1200px; margin: 0 auto; }
+ 
+/* ── HEADER ── */
+header { text-align: center; margin-bottom: 50px; padding-top: 40px; }
+ 
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(20px, 3.8vw, 38px);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: glow 2.5s ease-in-out infinite alternate;
+}
+ 
+@keyframes glow {
+  from { filter: drop-shadow(0 0 18px rgba(0,240,255,0.5)); }
+  to   { filter: drop-shadow(0 0 28px rgba(255,0,234,0.5)); }
+}
+ 
+.subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 12px;
+}
+ 
+.norm-badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 4px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+ 
+/* tool-links strip */
+.tool-links {
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+ 
+.tool-links a {
+  color: var(--primary);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0,240,255,0.35);
+  transition: color 0.25s, border-color 0.25s;
+}
+ 
+.tool-links a:hover {
+  color: var(--secondary);
+  border-color: var(--secondary);
+}
+ 
+/* ── CARDS ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+ 
+.card:hover { border-color: var(--border-bright); }
+ 
+.card::before {
+  content:'';
+  position:absolute; top:-50%; left:-50%;
+  width:200%; height:200%;
+  background: linear-gradient(45deg,transparent,rgba(0,240,255,0.03),transparent);
+  transform:rotate(45deg);
+  animation: shine 5s linear infinite;
+  pointer-events:none;
+}
+ 
+@keyframes shine {
+  0%   { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%)  translateY(100%)  rotate(45deg); }
+}
+ 
+.card-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--primary);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+ 
+.card-title::after {
+  content:''; flex:1;
+  height:1px;
+  background: linear-gradient(to right, var(--border-bright), transparent);
+}
+ 
+/* ── UPLOAD ZONE ── */
+.upload-zone {
+  border: 2px dashed var(--primary);
+  border-radius: 12px;
+  padding: 44px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(0,240,255,0.03);
+}
+ 
+.upload-zone:hover {
+  border-color: var(--secondary);
+  background: rgba(255,0,234,0.05);
+  transform: scale(1.01);
+}
+ 
+.upload-zone.dragover {
+  border-color: var(--success);
+  background: rgba(0,255,159,0.08);
+}
+ 
+.upload-icon { font-size:44px; margin-bottom:12px; animation: float 3s ease-in-out infinite; }
+ 
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+ 
+.upload-text { font-size:15px; margin-bottom:8px; }
+.upload-hint { font-size:12px; color:var(--text-muted); }
+ 
+input[type="file"] { display:none; }
+ 
+.file-selected {
+  margin-top:14px; font-size:12px;
+  color:var(--accent); display:none;
+  gap:6px; align-items:center; justify-content:center;
+}
+.file-selected.show { display:flex; }
+ 
+.info-box {
+  background: rgba(0,240,255,0.07);
+  border-left: 3px solid var(--primary);
+  padding: 16px 18px;
+  border-radius: 8px;
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+.info-box strong { color: var(--primary); display:block; margin-bottom:4px; }
+.info-box code {
+  background:rgba(0,240,255,0.1);
+  padding:1px 5px;
+  border-radius:3px;
+  font-size:11px;
+  color:var(--accent);
+}
+ 
+/* ── BUTTON ── */
+.btn {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--bg-dark);
+  border: none;
+  padding: 14px 40px;
+  border-radius: 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+ 
+.btn::before {
+  content:'';
+  position:absolute; top:50%; left:50%;
+  width:0; height:0; border-radius:50%;
+  background:rgba(255,255,255,0.25);
+  transform:translate(-50%,-50%);
+  transition:width 0.5s,height 0.5s;
+}
+.btn:hover::before { width:300px; height:300px; }
+.btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,240,255,0.4); }
+.btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+ 
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  padding: 12px 32px;
+  border-radius: 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+.btn-outline:hover {
+  background: rgba(0,255,159,0.1);
+  box-shadow: 0 0 20px rgba(0,255,159,0.3);
+  transform: translateY(-2px);
+}
+ 
+/* ── STATS ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+ 
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+  transition: all 0.3s;
+}
+.stat-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+ 
+.stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+.stat-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
+ 
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+ 
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.25s;
+  position: relative;
+  top: 1px;
+}
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.tab-btn:hover:not(.active) { color: var(--text-light); }
+ 
+.tab-panel { display:none; }
+.tab-panel.active { display:block; animation: slideIn 0.4s ease-out; }
+ 
+/* ── TABLE ── */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+ 
+table { width:100%; border-collapse:collapse; }
+ 
+thead { background: linear-gradient(135deg, rgba(0,240,255,0.18), rgba(255,0,234,0.15)); }
+ 
+th {
+  padding:13px 14px;
+  text-align:left;
+  font-family:'Orbitron', sans-serif;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color: var(--primary);
+  white-space:nowrap;
+}
+ 
+td {
+  padding:11px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size:12px;
+  white-space:nowrap;
+}
+ 
+td.name-col { color: var(--text-light); font-weight:600; }
+td.de-col   { font-weight:700; }
+ 
+tbody tr { transition:background 0.2s; }
+tbody tr:hover { background: rgba(0,240,255,0.05); }
+tbody tr:last-child td { border-bottom:none; }
+ 
+/* ΔE colour scale badges */
+.de-badge {
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:10px;
+  font-size:11px;
+  font-weight:700;
+  min-width:54px;
+  text-align:center;
+}
+.de-tiny   { background:rgba(0,255,159,0.18);  color:#00ff9f; }
+.de-small  { background:rgba(0,240,255,0.18);  color:#00f0ff; }
+.de-medium { background:rgba(255,165,2,0.18);  color:#ffa502; }
+.de-large  { background:rgba(255,71,87,0.18);  color:#ff4757; }
+ 
+/* Matrix table */
+.matrix-table { font-size:11px; }
+.matrix-table th { padding:9px 10px; font-size:10px; }
+.matrix-table td { padding:8px 10px; text-align:center; }
+.matrix-diag { background:rgba(255,255,255,0.04); color:var(--text-muted); }
+ 
+/* ── LOADER ── */
+.loader { display:none; text-align:center; padding:40px; }
+.loader.show { display:block; }
+ 
+.spinner {
+  width:48px; height:48px;
+  border:4px solid var(--border);
+  border-top:4px solid var(--primary);
+  border-right:4px solid var(--secondary);
+  border-radius:50%;
+  animation: spin 0.9s linear infinite;
+  margin:0 auto 18px;
+}
+@keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+ 
+/* ── ERROR ── */
+.error-box {
+  background:rgba(255,71,87,0.1);
+  border-left:3px solid var(--error);
+  padding:14px 18px;
+  border-radius:8px;
+  margin-top:16px;
+  color:var(--error);
+  font-size:13px;
+  display:none;
+  animation: shake 0.4s ease;
+}
+.error-box.show { display:block; }
+@keyframes shake {
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-8px);}
+  75%{transform:translateX(8px);}
+}
+ 
+/* ── RESULTS SECTION ── */
+.results-section { display:none; animation: slideIn 0.5s ease-out; }
+.results-section.show { display:block; }
+ 
+@keyframes slideIn {
+  from{opacity:0;transform:translateY(18px);}
+  to{opacity:1;transform:translateY(0);}
+}
+ 
+.download-row { display:flex; gap:14px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
+ 
+/* ── LOG ── */
+.log-box {
+  background:rgba(0,0,0,0.4);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:14px 16px;
+  font-size:11px;
+  color:var(--text-muted);
+  max-height:120px;
+  overflow-y:auto;
+  margin-top:16px;
+  display:none;
+}
+.log-box.show { display:block; }
+.log-entry { padding:2px 0; }
+.log-ok   { color:var(--accent); }
+.log-warn { color:var(--warning); }
+.log-err  { color:var(--error); }
+ 
+/* ── PROGRESS ── */
+.progress-bar-track {
+  background:var(--border);
+  border-radius:6px;
+  height:6px;
+  margin-top:16px;
+  overflow:hidden;
+}
+.progress-bar-fill {
+  height:100%;
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  border-radius:6px;
+  width:0%;
+  transition:width 0.3s ease;
+}
+ 
+/* highlight strip for best/worst pair */
+.highlight-strip {
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:24px;
+}
+.highlight-card {
+  flex:1;
+  min-width:220px;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px 20px;
+  position:relative;
+}
+.highlight-card.best  { border-color:var(--accent); }
+.highlight-card.worst { border-color:var(--error); }
+.hl-label {
+  font-family:'Orbitron',sans-serif;
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.best  .hl-label { color:var(--accent); }
+.worst .hl-label { color:var(--error); }
+.hl-pair  { font-size:13px; font-weight:600; margin-bottom:4px; }
+.hl-value { font-family:'Orbitron',sans-serif; font-size:22px; font-weight:700; }
+.best  .hl-value { color:var(--accent); }
+.worst .hl-value { color:var(--error); }
+</style>
+</head>
+<body>
+<div class="container">
+ 
+<!-- HEADER -->
+<header>
+  <h1>L*a*b* → ΔE00 Calculator</h1>
+  <p class="subtitle">CIEDE2000 Colorimetric Difference · Batch Pairwise Computation</p>
+  <span class="norm-badge">Sharma, Wu &amp; Dalal (2005) — Color Research &amp; Application, 30(1), 21–30 · CIE DS 014-6/E:2013</span>
+  <div class="tool-links">
+    Other colour measurement tools are also available:<br>
+    <a href="https://cchervin31.github.io/spectrum_to_Lab/v2_Spectrum_to_Lab_batch.html" target="_blank" rel="noopener">
+      Spectrum → L*a*b* Batch Converter
+    </a>
+    &nbsp;·&nbsp;
+    <a href="https://cchervin31.github.io/Lab-color-calculator/lab-calculator-en.html" target="_blank" rel="noopener">
+      L*a*b* Colour Calculator
+    </a>
+  </div>
+</header>
+ 
+<!-- UPLOAD -->
+<div class="card">
+  <div class="card-title">📂 Input File</div>
+  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <div class="upload-icon">🎨</div>
+    <div class="upload-text">Drop your CSV file here or click to browse</div>
+    <div class="upload-hint">Separator: semicolon (;) · Header: Product; L_star; a_star; b_star</div>
+  </div>
+  <input type="file" id="fileInput" accept=".csv,.txt">
+  <div class="file-selected" id="fileSelected">✅ <span id="fileName"></span></div>
+  <div class="error-box" id="errorBox"></div>
+  <div class="info-box">
+    <strong>Expected CSV format</strong>
+    Row 1 (header): <code>Product;L_star;a_star;b_star</code><br>
+    Data rows: <code>SampleName;46.1895;59.1456;11.9838</code> — one sample per row.<br>
+    Any row with an empty first column is ignored. At least 2 samples are required.
+  </div>
+</div>
+ 
+<!-- PROCESS BUTTON -->
+<div style="text-align:center; margin-bottom:30px;">
+  <button class="btn" id="processBtn" onclick="processFile()" disabled>▶ Compute ΔE00 Pairs</button>
+</div>
+ 
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <div>Computing pairwise ΔE00 values…</div>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+</div>
+ 
+<!-- LOG -->
+<div class="log-box" id="logBox"></div>
+ 
+<!-- RESULTS -->
+<div class="results-section" id="resultsSection">
+ 
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" id="statSamples">0</div>
+      <div class="stat-label">Samples</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statPairs">0</div>
+      <div class="stat-label">Pairs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statMin">—</div>
+      <div class="stat-label">Min ΔE00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statMax">—</div>
+      <div class="stat-label">Max ΔE00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statMean">—</div>
+      <div class="stat-label">Mean ΔE00</div>
+    </div>
+  </div>
+ 
+  <!-- BEST / WORST PAIR -->
+  <div class="highlight-strip">
+    <div class="highlight-card best">
+      <div class="hl-label">🟢 Most Similar Pair</div>
+      <div class="hl-pair" id="hlBestPair">—</div>
+      <div class="hl-value" id="hlBestVal">—</div>
+    </div>
+    <div class="highlight-card worst">
+      <div class="hl-label">🔴 Most Different Pair</div>
+      <div class="hl-pair" id="hlWorstPair">—</div>
+      <div class="hl-value" id="hlWorstVal">—</div>
+    </div>
+  </div>
+ 
+  <!-- TABS -->
+  <div class="card" style="padding-bottom:0;">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('pairs',this)">Pair Table</button>
+      <button class="tab-btn" onclick="switchTab('matrix',this)">ΔE00 Matrix</button>
+    </div>
+ 
+    <!-- TAB: PAIRS -->
+    <div class="tab-panel active" id="tab-pairs">
+      <div class="table-wrapper" style="margin-bottom:20px;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Sample 1</th>
+              <th>Sample 2</th>
+              <th>ΔL*</th>
+              <th>Δa*</th>
+              <th>Δb*</th>
+              <th>ΔE00</th>
+              <th>Perception</th>
+            </tr>
+          </thead>
+          <tbody id="pairsBody"></tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <!-- TAB: MATRIX -->
+    <div class="tab-panel" id="tab-matrix">
+      <div class="table-wrapper" style="margin-bottom:20px;">
+        <table class="matrix-table" id="matrixTable"></table>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- LEGEND -->
+  <div class="info-box" style="margin-top:0; margin-bottom:24px;">
+    <strong>ΔE00 Perception guide (CIEDE2000)</strong>
+    <span class="de-badge de-tiny">0 – 1</span> Not perceptible &nbsp;
+    <span class="de-badge de-small">1 – 3</span> Barely perceptible &nbsp;
+    <span class="de-badge de-medium">3 – 6</span> Clearly perceptible &nbsp;
+    <span class="de-badge de-large">&gt; 6</span> Very different
+  </div>
+ 
+  <!-- DOWNLOAD -->
+  <div class="download-row">
+    <button class="btn" onclick="downloadCSV()">⬇ Download DeltaE_results.csv</button>
+    <button class="btn-outline" onclick="resetAll()">↺ New File</button>
+  </div>
+ 
+</div><!-- /results -->
+ 
+</div><!-- /container -->
+ 
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let parsedData = null;   // { products:[], L:[], a:[], b:[] }
+let pairsResult = [];    // [{ i, j, name1, name2, dL, da, db, dE }]
+let matrixResult = [];   // 2D array [n][n]
+ 
+const $ = id => document.getElementById(id);
+ 
+// ============================================================
+// LOGGING / UI HELPERS
+// ============================================================
+function log(msg, cls='') {
+  const box = $('logBox');
+  box.classList.add('show');
+  const div = document.createElement('div');
+  div.className = 'log-entry ' + cls;
+  div.textContent = msg;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+ 
+function showError(msg) {
+  const box = $('errorBox');
+  box.textContent = '⚠ ' + msg;
+  box.classList.add('show');
+}
+ 
+function clearError() { $('errorBox').classList.remove('show'); }
+ 
+// Drag & drop
+const zone = $('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+ 
+$('fileInput').addEventListener('change', e => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+ 
+function handleFile(file) {
+  clearError();
+  $('fileSelected').classList.remove('show');
+  $('processBtn').disabled = true;
+  parsedData = null;
+ 
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      parsedData = parseCSV(evt.target.result);
+      $('fileName').textContent = file.name + ' (' + parsedData.products.length + ' samples detected)';
+      $('fileSelected').classList.add('show');
+      $('processBtn').disabled = false;
+    } catch(err) {
+      showError(err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+ 
+// ============================================================
+// CSV PARSER
+// ============================================================
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  if (lines.length < 2) throw new Error('CSV has fewer than 2 rows.');
+ 
+  const header = lines[0].split(';').map(h => h.trim().toLowerCase());
+  // Detect column indices (flexible header)
+  const iName = header.findIndex(h => h === 'product' || h === 'sample' || h === 'name' || h === 'produit');
+  const iL    = header.findIndex(h => h.includes('l_star') || h === 'l*' || h === 'l');
+  const iA    = header.findIndex(h => h.includes('a_star') || h === 'a*' || h === 'a');
+  const iB    = header.findIndex(h => h.includes('b_star') || h === 'b*' || h === 'b');
+ 
+  if ([iName,iL,iA,iB].some(i => i < 0)) {
+    throw new Error(
+      'Could not detect required columns. Header must contain: Product (or Sample/Name), L_star (or L*), a_star (or a*), b_star (or b*).'
+    );
+  }
+ 
+  const products=[], L=[], a=[], b=[];
+  for (let i=1; i<lines.length; i++) {
+    const cols = lines[i].split(';');
+    const name = cols[iName] ? cols[iName].trim() : '';
+    if (!name) continue;
+    const lv = parseFloat(cols[iL].replace(',','.'));
+    const av = parseFloat(cols[iA].replace(',','.'));
+    const bv = parseFloat(cols[iB].replace(',','.'));
+    if ([lv,av,bv].some(isNaN)) throw new Error(`Row "${name}": non-numeric L*a*b* value.`);
+    products.push(name); L.push(lv); a.push(av); b.push(bv);
+  }
+ 
+  if (products.length < 2) throw new Error('At least 2 samples are required to compute ΔE00.');
+  return { products, L, a, b };
+}
+ 
+// ============================================================
+// DELTA E COMPUTATION — CIEDE2000 (ΔE00)
+// Reference: Sharma, G., Wu, W. & Dalal, E.N. (2005).
+// "The CIEDE2000 color-difference formula: Implementation notes,
+// supplementary test data, and mathematical observations."
+// Color Research & Application, 30(1), 21–30.
+// https://doi.org/10.1002/col.20070
+// ============================================================
+function deg2rad(deg) { return deg * Math.PI / 180; }
+function rad2deg(rad) { return rad * 180 / Math.PI; }
+ 
+function deltaE(L1,a1,b1,L2,a2,b2) {
+  // Weighting factors (kL, kC, kH = 1 for standard "graphic arts" conditions)
+  const kL = 1, kC = 1, kH = 1;
+ 
+  // Step 1: C*ab, mean C*ab, G, a', C', h'
+  const C1 = Math.sqrt(a1*a1 + b1*b1);
+  const C2 = Math.sqrt(a2*a2 + b2*b2);
+  const Cbar = (C1 + C2) / 2;
+ 
+  const G = 0.5 * (1 - Math.sqrt(Math.pow(Cbar,7) / (Math.pow(Cbar,7) + Math.pow(25,7))));
+ 
+  const a1p = (1 + G) * a1;
+  const a2p = (1 + G) * a2;
+ 
+  const C1p = Math.sqrt(a1p*a1p + b1*b1);
+  const C2p = Math.sqrt(a2p*a2p + b2*b2);
+ 
+  let h1p = (a1p === 0 && b1 === 0) ? 0 : rad2deg(Math.atan2(b1, a1p));
+  if (h1p < 0) h1p += 360;
+  let h2p = (a2p === 0 && b2 === 0) ? 0 : rad2deg(Math.atan2(b2, a2p));
+  if (h2p < 0) h2p += 360;
+ 
+  // Step 2: ΔL', ΔC', ΔH'
+  const dLp = L2 - L1;
+  const dCp = C2p - C1p;
+ 
+  let dhp;
+  if (C1p * C2p === 0) {
+    dhp = 0;
+  } else if (Math.abs(h2p - h1p) <= 180) {
+    dhp = h2p - h1p;
+  } else if (h2p - h1p > 180) {
+    dhp = h2p - h1p - 360;
+  } else {
+    dhp = h2p - h1p + 360;
+  }
+  const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin(deg2rad(dhp) / 2);
+ 
+  // Step 3: mean L', mean C', mean H', T, ΔTheta, RC, SL, SC, SH, RT
+  const Lbarp = (L1 + L2) / 2;
+  const Cbarp = (C1p + C2p) / 2;
+ 
+  let hbarp;
+  if (C1p * C2p === 0) {
+    hbarp = h1p + h2p;
+  } else if (Math.abs(h1p - h2p) <= 180) {
+    hbarp = (h1p + h2p) / 2;
+  } else if (h1p + h2p < 360) {
+    hbarp = (h1p + h2p + 360) / 2;
+  } else {
+    hbarp = (h1p + h2p - 360) / 2;
+  }
+ 
+  const T = 1
+    - 0.17 * Math.cos(deg2rad(hbarp - 30))
+    + 0.24 * Math.cos(deg2rad(2 * hbarp))
+    + 0.32 * Math.cos(deg2rad(3 * hbarp + 6))
+    - 0.20 * Math.cos(deg2rad(4 * hbarp - 63));
+ 
+  const dTheta = 30 * Math.exp(-Math.pow((hbarp - 275) / 25, 2));
+ 
+  const RC = 2 * Math.sqrt(Math.pow(Cbarp,7) / (Math.pow(Cbarp,7) + Math.pow(25,7)));
+ 
+  const SL = 1 + (0.015 * Math.pow(Lbarp - 50, 2)) / Math.sqrt(20 + Math.pow(Lbarp - 50, 2));
+  const SC = 1 + 0.045 * Cbarp;
+  const SH = 1 + 0.015 * Cbarp * T;
+ 
+  const RT = -Math.sin(deg2rad(2 * dTheta)) * RC;
+ 
+  // Step 4: ΔE00
+  const termL = dLp / (kL * SL);
+  const termC = dCp / (kC * SC);
+  const termH = dHp / (kH * SH);
+ 
+  const dE00 = Math.sqrt(
+    termL*termL + termC*termC + termH*termH + RT * termC * termH
+  );
+ 
+  return dE00;
+}
+ 
+async function processFile() {
+  if (!parsedData) return;
+  clearError();
+  $('resultsSection').classList.remove('show');
+  $('logBox').innerHTML='';
+  $('logBox').classList.remove('show');
+  $('loader').classList.add('show');
+  $('processBtn').disabled=true;
+  pairsResult = [];
+  matrixResult = [];
+ 
+  const { products, L, a, b } = parsedData;
+  const n = products.length;
+ 
+  log(`▶ ${n} samples — computing ${n*(n-1)/2} unique pairs`);
+ 
+  // Build symmetric matrix
+  matrixResult = Array.from({length:n}, () => new Array(n).fill(0));
+  let pairIdx=0;
+  const total = n*(n-1)/2;
+ 
+  for (let i=0; i<n-1; i++) {
+    for (let j=i+1; j<n; j++) {
+      const dL = L[j]-L[i];
+      const da = a[j]-a[i];
+      const db = b[j]-b[i];
+      const dE = deltaE(L[i],a[i],b[i],L[j],a[j],b[j]);
+      matrixResult[i][j] = dE;
+      matrixResult[j][i] = dE;
+      pairsResult.push({ i, j, name1:products[i], name2:products[j], dL, da, db, dE });
+      pairIdx++;
+      $('progressFill').style.width = (pairIdx/total*100)+'%';
+      if (pairIdx % 20 === 0) await new Promise(r=>setTimeout(r,0));
+    }
+  }
+ 
+  log(`✔ ${pairsResult.length} pairs computed`, 'log-ok');
+ 
+  $('loader').classList.remove('show');
+  $('processBtn').disabled=false;
+ 
+  renderResults();
+}
+ 
+// ============================================================
+// RENDER
+// ============================================================
+function deClass(v) {
+  if (v < 1)  return 'de-tiny';
+  if (v < 3)  return 'de-small';
+  if (v < 6)  return 'de-medium';
+  return 'de-large';
+}
+function deLabel(v) {
+  if (v < 1)  return 'Not perceptible';
+  if (v < 3)  return 'Barely perceptible';
+  if (v < 6)  return 'Clearly perceptible';
+  return 'Very different';
+}
+ 
+function renderResults() {
+  const { products } = parsedData;
+  const n = products.length;
+ 
+  // Stats
+  const dEs = pairsResult.map(p=>p.dE);
+  const minDE = Math.min(...dEs);
+  const maxDE = Math.max(...dEs);
+  const meanDE = dEs.reduce((s,v)=>s+v,0)/dEs.length;
+ 
+  $('statSamples').textContent = n;
+  $('statPairs').textContent   = pairsResult.length;
+  $('statMin').textContent     = minDE.toFixed(2);
+  $('statMax').textContent     = maxDE.toFixed(2);
+  $('statMean').textContent    = meanDE.toFixed(2);
+ 
+  // Best / Worst
+  const best  = pairsResult.find(p=>p.dE===minDE);
+  const worst = pairsResult.find(p=>p.dE===maxDE);
+  $('hlBestPair').textContent  = best.name1 + ' ↔ ' + best.name2;
+  $('hlBestVal').textContent   = best.dE.toFixed(4);
+  $('hlWorstPair').textContent = worst.name1 + ' ↔ ' + worst.name2;
+  $('hlWorstVal').textContent  = worst.dE.toFixed(4);
+ 
+  // Pairs table
+  const tbody = $('pairsBody');
+  tbody.innerHTML='';
+  pairsResult.forEach((p,idx)=>{
+    const cls = deClass(p.dE);
+    const tr = document.createElement('tr');
+    tr.innerHTML=`
+      <td style="color:var(--text-muted)">${idx+1}</td>
+      <td class="name-col">${p.name1}</td>
+      <td class="name-col">${p.name2}</td>
+      <td>${p.dL>=0?'+':''}${p.dL.toFixed(4)}</td>
+      <td>${p.da>=0?'+':''}${p.da.toFixed(4)}</td>
+      <td>${p.db>=0?'+':''}${p.db.toFixed(4)}</td>
+      <td class="de-col"><span class="de-badge ${cls}">${p.dE.toFixed(4)}</span></td>
+      <td style="font-size:11px;color:var(--text-muted)">${deLabel(p.dE)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+ 
+  // Matrix table
+  const mat = $('matrixTable');
+  mat.innerHTML='';
+  // Header row
+  let headerRow = '<thead><tr><th></th>';
+  products.forEach(p => { headerRow += `<th title="${p}">${p.length>8?p.slice(0,7)+'…':p}</th>`; });
+  headerRow += '</tr></thead>';
+  mat.innerHTML += headerRow;
+ 
+  let body = '<tbody>';
+  for (let i=0;i<n;i++) {
+    body += `<tr><td class="name-col" style="font-size:11px">${products[i]}</td>`;
+    for (let j=0;j<n;j++) {
+      if (i===j) {
+        body += `<td class="matrix-diag">0.00</td>`;
+      } else {
+        const v = matrixResult[i][j];
+        const cls = deClass(v);
+        body += `<td><span class="de-badge ${cls}" style="font-size:10px;padding:1px 5px">${v.toFixed(2)}</span></td>`;
+      }
+    }
+    body += '</tr>';
+  }
+  body += '</tbody>';
+  mat.innerHTML += body;
+ 
+  $('resultsSection').classList.add('show');
+}
+ 
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  $('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+ 
+// ============================================================
+// DOWNLOAD CSV
+// ============================================================
+function downloadCSV() {
+  if (pairsResult.length===0) return;
+  let csv = 'Sample_1;Sample_2;delta_L;delta_a;delta_b;delta_E00\r\n';
+  pairsResult.forEach(p=>{
+    csv += `${p.name1};${p.name2};${p.dL.toFixed(4)};${p.da.toFixed(4)};${p.db.toFixed(4)};${p.dE.toFixed(4)}\r\n`;
+  });
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'DeltaE_results.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+ 
+// ============================================================
+// RESET
+// ============================================================
+function resetAll() {
+  parsedData=null; pairsResult=[]; matrixResult=[];
+  $('fileInput').value='';
+  $('fileSelected').classList.remove('show');
+  $('processBtn').disabled=true;
+  $('resultsSection').classList.remove('show');
+  $('logBox').innerHTML='';
+  $('logBox').classList.remove('show');
+  $('progressFill').style.width='0%';
+  clearError();
+}
+</script>
+</body>
+</html>
+ 
